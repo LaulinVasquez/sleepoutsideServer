@@ -9,6 +9,7 @@
     "test:ci": "vitest run",
     "start": "node --experimental-strip-types src/server.ts",
     "build": "npx tsc",
+    "init-db": "node --env-file=.env src/database/init-db.js",
     "dev": "tsx --watch --env-file=.env src/server.ts"
   },
   "keywords": [],
@@ -18,7 +19,7 @@
     "@types/express": "^5.0.5",
     "@types/morgan": "^1.9.10",
     "@types/node": "^22.13.9",
-    "dotenv": "^17.2.3",
+    "dotenv": "^17.4.2",
     "tsx": "^4.19.3",
     "typescript": "^5.8.2",
     "vite": "^7.2.4",
