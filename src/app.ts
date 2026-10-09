@@ -4,6 +4,7 @@ import { fileURLToPath } from "url";
 import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
+import cors from 'cors';
 
 // Local Imports (NOTE: .mts extension is required in ESM)
 import routes from './routes/index.mts';
@@ -15,6 +16,7 @@ const __dirname = path.dirname(__filename);
 
 const app: express.Application = express();
 // Serve static files from the public folder
+app.use(cors());
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.urlencoded({ extended: true })); // to parse the incoming requests with URL parameters
 app.use(express.json({ limit: '10kb' })); // To parse the incoming requests with JSON payloads
