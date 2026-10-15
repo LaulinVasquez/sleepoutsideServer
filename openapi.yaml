@@ -1,0 +1,562 @@
+openapi: 3.0.3
+info:
+  title: SleepOutside API
+  version: 1.0.0
+  description: |
+    API documentation for SleepOutside. Product listing and detail routes exist;
+    product query options and alert operations describe planned functionality.
+servers:
+  - url: http://localhost:3000
+    description: Local development
+
+tags:
+  - name: System
+  - name: Products
+  - name: Alerts
+
+paths:
+  /health:
+    get:
+      tags: [System]
+      summary: Check backend health
+      operationId: getHealth
+      responses:
+        '200':
+          description: Server is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/v1/:
+    get:
+      tags: [System]
+      summary: API root
+      operationId: getApiRoot
+      responses:
+        '200':
+          description: API version information
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [title]
+                properties:
+                  title:
+                    type: string
+                    example: API V1
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/v1/products:
+    get:
+      tags: [Products]
+      summary: List products
+      description: |
+        Public endpoint. Query filters, field selection, and pagination are planned
+        enhancements; the current backend returns all MongoDB products.
+      operationId: listProducts
+      parameters:
+        - name: q
+          in: query
+          description: Search text
+          schema:
+            type: string
+        - name: category
+          in: query
+          description: Filter by category
+          schema:
+            $ref: '#/components/schemas/ProductCategory'
+        - name: fields
+          in: query
+          description: Product property names to include (comma-separated)
+          style: form
+          explode: false
+          schema:
+            type: array
+            items:
+              type: string
+          example: [name, finalPrice]
+        - name: limit
+          in: query
+          description: Maximum products per page
+          schema:
+            type: integer
+            minimum: 1
+            default: 20
+        - name: offset
+          in: query
+          description: Number of products to skip
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Paginated products (planned response envelope)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedProducts'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/v1/products/{id}:
+    get:
+      tags: [Products]
+      summary: Get product by ID
+      operationId: getProductById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Product's public id field, not MongoDB _id
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Product found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                message: Product not found
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/v1/alerts:
+    get:
+      tags: [Alerts]
+      summary: List alerts for the authenticated user
+      description: Planned endpoint; requires bearer authentication.
+      operationId: listAlerts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Paginated alerts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAlerts'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      tags: [Alerts]
+      summary: Create an alert
+      description: Planned endpoint. Creates a product price-drop or back-in-stock alert.
+      operationId: createAlert
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlertInput'
+      responses:
+        '201':
+          description: Alert created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alert'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Referenced product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                message: Product not found
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/v1/alerts/{id}:
+    get:
+      tags: [Alerts]
+      summary: Get one alert
+      description: Planned endpoint. Users can access only their own alerts.
+      operationId: getAlertById
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AlertId'
+      responses:
+        '200':
+          description: Alert found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alert'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    patch:
+      tags: [Alerts]
+      summary: Update an alert
+      description: Planned endpoint. Only the alert owner may update it.
+      operationId: updateAlert
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AlertId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlertUpdate'
+      responses:
+        '200':
+          description: Updated alert
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alert'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      tags: [Alerts]
+      summary: Delete an alert
+      description: Planned endpoint. Only the alert owner may delete it.
+      operationId: deleteAlert
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AlertId'
+      responses:
+        '204':
+          description: Alert deleted; no response body
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    AlertId:
+      name: id
+      in: path
+      required: true
+      description: Alert identifier
+      schema:
+        type: string
+  schemas:
+    ProductCategory:
+      type: string
+      enum: [tents, backpacks, sleeping-bags, hammocks]
+    Product:
+      type: object
+      required: [_id, id, isClearance, category, isNew, url, reviews, nameWithoutBrand, name, images, sizesAvailable, colors, descriptionHtmlSimple, suggestedRetailPrice, brand, listPrice, finalPrice]
+      properties:
+        _id:
+          type: string
+          description: MongoDB document identifier serialized as a string
+        id:
+          type: string
+        isClearance:
+          type: boolean
+        category:
+          $ref: '#/components/schemas/ProductCategory'
+        isNew:
+          type: boolean
+        url:
+          type: string
+        reviews:
+          $ref: '#/components/schemas/Reviews'
+        nameWithoutBrand:
+          type: string
+          minLength: 1
+        name:
+          type: string
+          minLength: 1
+        images:
+          $ref: '#/components/schemas/ProductImages'
+        sizesAvailable:
+          $ref: '#/components/schemas/SizesAvailable'
+        colors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Color'
+        descriptionHtmlSimple:
+          type: string
+          minLength: 1
+        suggestedRetailPrice:
+          type: number
+          description: Manufacturer suggested retail price
+        brand:
+          $ref: '#/components/schemas/Brand'
+        listPrice:
+          type: number
+        finalPrice:
+          type: number
+          description: Price after discounts or promotions
+    Reviews:
+      type: object
+      required: [reviewsUrl, reviewCount, averageRating]
+      properties:
+        reviewsUrl:
+          type: string
+        reviewCount:
+          type: integer
+          minimum: 0
+        averageRating:
+          type: number
+          minimum: 0
+          maximum: 5
+    ProductImages:
+      type: object
+      required: [primarySmall, primaryMedium, primaryLarge, primaryExtraLarge, extraImages]
+      properties:
+        primarySmall:
+          type: string
+        primaryMedium:
+          type: string
+        primaryLarge:
+          type: string
+        primaryExtraLarge:
+          type: string
+        extraImages:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExtraImage'
+    ExtraImage:
+      type: object
+      required: [title, src]
+      properties:
+        title:
+          type: string
+        src:
+          type: string
+    SizesAvailable:
+      type: object
+      required: [zipper]
+      properties:
+        zipper:
+          type: array
+          items:
+            type: string
+        size:
+          type: array
+          description: Optional size values from the earlier JSON schema
+          items:
+            type: string
+    Color:
+      type: object
+      required: [colorCode, colorName, colorChipImageSrc, colorPreviewImageSrc]
+      properties:
+        colorCode:
+          type: string
+        colorName:
+          type: string
+        colorChipImageSrc:
+          type: string
+        colorPreviewImageSrc:
+          type: string
+    Brand:
+      type: object
+      required: [id, url, productsUrl, logoSrc, name]
+      properties:
+        id:
+          type: string
+        url:
+          type: string
+        productsUrl:
+          type: string
+        logoSrc:
+          type: string
+        name:
+          type: string
+    PaginatedProducts:
+      type: object
+      required: [count, next, previous, results]
+      properties:
+        count:
+          type: integer
+          minimum: 0
+          description: Total matching products
+        next:
+          type: string
+          nullable: true
+        previous:
+          type: string
+          nullable: true
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+          description: May contain partial product objects when fields is supplied
+    AlertType:
+      type: string
+      enum: [price_drop, back_in_stock]
+    AlertInput:
+      type: object
+      required: [productId, type]
+      properties:
+        productId:
+          type: string
+          description: Public product id
+        type:
+          $ref: '#/components/schemas/AlertType'
+        targetPrice:
+          type: number
+          minimum: 0
+          description: Optional target price for a price-drop alert
+        enabled:
+          type: boolean
+          default: true
+    AlertUpdate:
+      type: object
+      minProperties: 1
+      properties:
+        targetPrice:
+          type: number
+          minimum: 0
+        enabled:
+          type: boolean
+    Alert:
+      allOf:
+        - $ref: '#/components/schemas/AlertInput'
+        - type: object
+          required: [id, userId, enabled, createdAt, updatedAt]
+          properties:
+            id:
+              type: string
+            userId:
+              type: string
+              description: Owner ID derived from the authenticated user
+            createdAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
+    PaginatedAlerts:
+      type: object
+      required: [count, next, previous, results]
+      properties:
+        count:
+          type: integer
+          minimum: 0
+        next:
+          type: string
+          nullable: true
+        previous:
+          type: string
+          nullable: true
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
+    Error:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+        details:
+          description: Optional validation or debugging details
+          nullable: true
+  responses:
+    BadRequest:
+      description: Invalid query parameters, identifier, or request body
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: Invalid request
+            details: Invalid limit or offset
+    Unauthorized:
+      description: Missing or invalid authentication token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: Authentication required
+    Forbidden:
+      description: Authenticated user does not have permission
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: Access denied
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: Alert not found
+    InternalError:
+      description: Unexpected server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: Internal server error
