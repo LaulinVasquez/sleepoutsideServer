@@ -1,6 +1,10 @@
 // import MongoClient and ServerApiVersion from the mongodb library and import products from the products.js file.
 import { MongoClient, ServerApiVersion } from "mongodb";
 import {products} from "./products.js";
+import * as argon2 from "argon2";
+
+const hashedPassword = await argon2.hash("password");
+const now = new Date();
 
 
 //build the uri for our connection string
@@ -25,6 +29,7 @@ const init = async () => {
     
     // initialize the Products collection
     await seedProducts(db);
+    await seedUsers(db);
   } catch (error) {
     console.error(error.message);
   } finally {
@@ -88,6 +93,48 @@ const seedProducts = async (db) => {
       `${result.insertedCount} new listing(s) created with the following id(s):`
     );
     console.log(result.insertedIds);
+  } catch (error) {
+    console.error(error.message);
+  }
+};
+const seedUsers = async (db) => {
+  try {
+    // Drop the users collection if it exists
+    const exists = await db.listCollections({ name: "users" }).hasNext();
+
+    if (exists) {
+      await db.collection("users").drop();
+      console.log("Collection 'users' dropped successfully");
+    }
+
+    // Create the users collection
+    await db.createCollection("users");
+    console.log("Collection 'users' created successfully");
+
+    await db.collection("users").createIndex(
+      {email: 1},
+      {unique: true}
+    );
+
+    // Insert a test user
+    const testUser = {
+      name: "Test User",
+      email: "test@example.com",
+      password_hash:await argon2.hash("test123"),
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    await db.collection("users").insertOne(testUser);
+    console.log("Test user added successfully");
+
+    // Create an index on email
+    await db.collection("users").createIndex(
+      { email: 1 },
+      { unique: true }
+    );
+
+    console.log("Users index created successfully");
   } catch (error) {
     console.error(error.message);
   }
