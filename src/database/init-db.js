@@ -1,5 +1,6 @@
 // import MongoClient and ServerApiVersion from the mongodb library and import products from the products.js file.
 import { MongoClient, ServerApiVersion } from "mongodb";
+import { getConnectionUri } from './connection-uri.mjs';
 import {products} from "./products.js";
 import * as argon2 from "argon2";
 
@@ -8,7 +9,7 @@ const now = new Date();
 
 
 //build the uri for our connection string
-const uri = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@${process.env.MONGO_URI}`;
+const uri = getConnectionUri();
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {

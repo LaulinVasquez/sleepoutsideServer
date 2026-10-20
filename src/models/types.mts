@@ -1,3 +1,5 @@
+import type { Filter } from "mongodb";
+
 // Product schema
 export interface Product {
   _id: string;
@@ -172,4 +174,21 @@ export interface Alert {
   status: "active" | "inactive";
   createdAt: Date;
   modifiedAt: Date;
+}
+
+export interface QueryParams {
+  category?: string;
+  q?: string;
+  limit?: string;
+  offset?: string;
+  fields?: string;
+}
+
+export type Projection<T> = { [K in keyof T]?: 0 | 1 };
+
+export interface FindProductObj {
+  search: Filter<Product>;
+  limit: number;
+  offset: number;
+  fieldFilters?: Projection<Product>;
 }
