@@ -1,8 +1,38 @@
 import CustomError from "../errors/CustomError.mts";
 import type { QueryParams } from "../models/types.mts";
+import jwt, { type SignOptions } from "jsonwebtoken";
+import { Ajv, type ErrorObject } from "ajv";
+import addFormats from "ajv-formats";
+import addKeywords from "ajv-keywords";
+import type { JSONSchema7 } from "json-schema";
+import EntityNotFoundError from "../errors/EntityNotFoundError.mts";
 
 export function invalidQuery(message: string): never {
   throw new CustomError({ message, statusCode: 400, code: "ERR_VALID" });
+}
+
+export function validator(schema: JSONSchema7, data: object): void {
+  const ajv = new Ajv();
+
+  // @ts-expect-error AJV plugin types are incompatible with NodeNext module resolution.
+  addFormats(ajv);
+
+  // @ts-expect-error AJV plugin types are incompatible with NodeNext module resolution.
+  addKeywords(ajv, "instanceof");
+
+  const validate = ajv.compile(schema);
+
+  if (!validate(data) && validate.errors) {
+    const message = validate.errors
+      .map((error: ErrorObject) => `${error.instancePath} ${error.message}`)
+      .join(", ");
+
+    throw new EntityNotFoundError({
+      message,
+      statusCode: 400,
+      code: "ERR_VALID",
+    });
+  }
 }
 
 // Remove operator keys recursively, including objects nested in arrays.
@@ -54,3 +84,23 @@ export function buildPaginationWrapper<T>(totalCount: number, query: QueryParams
     results: [] as T[]
   };
 }
+
+// Function to generate a JWT token for a user
+
+export function generateToken(user: { id: string; email: string }) {
+  const payload = {
+    id: user.id,
+    email: user.email,
+  };
+
+  const secret = process.env.JWT_SECRET;
+
+  if (!secret) {
+    throw new Error("JWT_SECRET is not defined in the environment variables.");
+  }
+
+  const expiresIn = (process.env.JWT_EXPIRES_IN || "300s") as SignOptions["expiresIn"];
+
+  return jwt.sign(payload, secret, { expiresIn });
+}
+
