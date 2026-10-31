@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
+import CustomError from "../errors/CustomError.mts";
 
 function authorize(req: Request, res: Response, next: NextFunction): void {
   const secret = process.env.JWT_SECRET;
@@ -11,16 +12,14 @@ function authorize(req: Request, res: Response, next: NextFunction): void {
   }
 
   if (!authHeader) {
-    res.status(401).json({ message: "Authorization token is required" });
+    next(new CustomError({ statusCode: 401, code: "ERR_AUTH", message: "Please sign in to continue." }));
     return;
   }
 
-  const [scheme, token] = authHeader.split(" ");
+  const [scheme, token, extra] = authHeader.split(" ");
 
-  if (scheme !== "Bearer" || !token) {
-    res.status(401).json({
-      message: "Authorization header must use the Bearer scheme",
-    });
+  if (scheme !== "Bearer" || !token || extra !== undefined) {
+    next(new CustomError({ statusCode: 401, code: "ERR_AUTH", message: "Please sign in to continue." }));
     return;
   }
 
@@ -28,7 +27,7 @@ function authorize(req: Request, res: Response, next: NextFunction): void {
     res.locals.user = jwt.verify(token, secret);
     next();
   } catch {
-    res.status(403).json({ message: "Forbidden" });
+    next(new CustomError({ statusCode: 401, code: "ERR_AUTH", message: "Your session is invalid or has expired. Please sign in again." }));
   }
 }
 

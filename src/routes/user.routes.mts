@@ -1,6 +1,7 @@
 
 import { Router } from "express";
 import { login, register } from "../services/user.service.mts";
+import CustomError from "../errors/CustomError.mts";
 import authorize from "../middleware/authorize.mts";
 
 const router: Router = Router();
@@ -61,7 +62,7 @@ router.post("/login", async (req, res, next): Promise<void> => {
     const result = await login(email, password);
 
     if (!result) {
-      res.status(401).json({ message: "Invalid email or password" });
+      next(new CustomError({ statusCode: 401, code: "ERR_AUTH", message: "Invalid email or password" }));
       return;
     }
 
