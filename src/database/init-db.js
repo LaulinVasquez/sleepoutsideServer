@@ -121,7 +121,7 @@ const seedUsers = async (db) => {
     const testUser = {
       name: "Test User",
       email: "test@example.com",
-      password_hash:await argon2.hash("test123"),
+      password:await argon2.hash("test123"),
       createdAt: now,
       updatedAt: now,
     };
@@ -141,4 +141,8 @@ const seedUsers = async (db) => {
   }
 };
 
+export default db;
+
 init();
+
+

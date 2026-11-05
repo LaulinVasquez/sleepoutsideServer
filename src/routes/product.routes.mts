@@ -48,6 +48,28 @@ router.get("/:id", async (req, res, next) => {
   }
 });
 
+router.post("/", async (req, res, next) => {
+  try {
+    const { email, password, name } = req.body;
+
+    if (!email || !password || !name) {
+      res.status(400).json({
+        message: "Email, password, and name are required",
+      });
+      return;
+    }
+
+    res.status(201).json({
+      message: "User data received",
+      user: {
+        email,
+        name,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 
 
 export default router; // Export the router to use it in the main file
