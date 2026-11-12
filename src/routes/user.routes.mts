@@ -3,6 +3,8 @@ import { Router } from "express";
 import { login, register } from "../services/user.service.mts";
 import CustomError from "../errors/CustomError.mts";
 import authorize from "../middleware/authorize.mts";
+import { addProduct, getWishlist, removeProduct } from "../services/wishlist.service.mts";
+
 
 const router: Router = Router();
 
@@ -72,6 +74,34 @@ router.post("/login", async (req, res, next): Promise<void> => {
   }
 });
 
+// ---- Wish list (signed-in user only) ----
 
+// GET /users/wishlist
+router.get("/wishlist", authorize, async (req, res, next): Promise<void> => {
+  try {
+    res.status(200).json(await getWishlist(res.locals.user?.id));
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /users/wishlist   body: { "productId": "861PY" }
+router.post("/wishlist", authorize, async (req, res, next): Promise<void> => {
+  try {
+    const { added, wishlist } = await addProduct(res.locals.user?.id, req.body?.productId);
+    res.status(added ? 201 : 200).json(wishlist);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// DELETE /users/wishlist/:productId
+router.delete("/wishlist/:productId", authorize, async (req, res, next): Promise<void> => {
+  try {
+    res.status(200).json(await removeProduct(res.locals.user?.id, req.params.productId));
+  } catch (error) {
+    next(error);
+  }
+});
 
 export default router;

@@ -68,6 +68,7 @@ export interface User {
   address?: Address;
   phoneNumbers?: PhoneNumber[];
   cart?: CartItem[];
+  wishlist?: string[];
   createdAt: Date;
   modifiedAt: Date;
 }
