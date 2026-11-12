@@ -16,10 +16,14 @@ async function getProductById(id: string): Promise<Product | null> {
     return product;
 }
 
+async function getProductsByIds(ids: string[]): Promise<Product[]> {
+    return mongodb.getDb().collection<Product>("products").find({ id: { $in: ids } }).toArray();
+}
 
 export default {
     getAllProducts,
-    getProductById
+    getProductById,
+    getProductsByIds
 };
 
 

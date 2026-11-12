@@ -1,3 +1,4 @@
+import { ObjectId } from "mongodb";
 import mongodb from "../database/index.mts";
 import CustomError from "../errors/CustomError.mts";
 
@@ -35,4 +36,37 @@ export async function createUser(user: {
     }
     throw error;
   }
+}
+
+// Wish list: an array of product ids stored on the user document
+type WishlistDoc = { wishlist?: string[]; modifiedAt?: Date };
+
+export async function getWishlistIds(userId: string): Promise<string[] | null> {
+  const user = await mongodb
+    .getDb()
+    .collection("users")
+    .findOne({ _id: new ObjectId(userId) }, { projection: { wishlist: 1 } });
+
+  if (!user) return null;
+  return (user.wishlist as string[] | undefined) ?? [];
+}
+
+export async function addToWishlist(userId: string, productId: string) {
+  return mongodb
+    .getDb()
+    .collection<WishlistDoc>("users")
+    .updateOne(
+      { _id: new ObjectId(userId) },
+      { $addToSet: { wishlist: productId }, $set: { modifiedAt: new Date() } }
+    );
+}
+
+export async function removeFromWishlist(userId: string, productId: string) {
+  return mongodb
+    .getDb()
+    .collection<WishlistDoc>("users")
+    .updateOne(
+      { _id: new ObjectId(userId) },
+      { $pull: { wishlist: productId }, $set: { modifiedAt: new Date() } }
+    );
 }

@@ -273,6 +273,11 @@ export const UserSchema: JSONSchema7 = {
         }
       }
     },
+    wishlist: {
+      type: "array",
+      items: { type: "string" },
+      uniqueItems: true
+    },
     createdAt: { instanceof: "Date" },
     modifiedAt: { instanceof: "Date" }
   },
