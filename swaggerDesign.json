@@ -270,12 +270,17 @@
           "userId": {
             "type": "string"
           },
-          "name":{
+          "name": {
             "type": "string"
           },
           "status": {
             "type": "string",
-            "enum":["pending", "processing", "shipped", "delivered"],
+            "enum": [
+              "pending",
+              "processing",
+              "shipped",
+              "delivered"
+            ],
             "description": "The status of the order, must be one of pending, processing, shipped or delivered"
           },
           "cardNumber": {
@@ -387,12 +392,13 @@
                 "pattern": "^\\w+$",
                 "description": "The country of the user, must not be blank and must be a valid country"
               }
-            }},
+            }
+          },
           "orderItems": {
             "type": "array",
             "items": {
               "type": "object",
-               "$ref": "#/components/schemas/CartItem"
+              "$ref": "#/components/schemas/CartItem"
             }
           }
         },
@@ -406,7 +412,6 @@
           "items"
         ]
       },
-      
       "OrderUpdateRequest": {
         "type": "object",
         "properties": {
@@ -486,51 +491,51 @@
       "CartItem": {
         "type": "object",
         "properties": {
-            "productId": {
-              "type": "string"
-            },
-            "productName": {
-              "type": "string"
-            },
-            "price": {
-              "type": "number"
-            },
-            "finalPrice": {
-              "type": "number"
-            },
-            "productImageSrc": {
-              "type": "string"
-            },
-            "productUrl": {
-              "type": "string"
-            },
-            "productCategory": {
-              "type": "string"
-            },
-            "productColor": {
-              "type": "object",
-              "properties": {
-                "colorCode": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "colorCode"
-              ]
-            },
-            "productSize": {
-              "type": "string"
-            }
+          "productId": {
+            "type": "string"
           },
-          "required": [
-            "productId",
-            "productName",
-            "price",
-            "finalPrice",
-            "productImageSrc",
-            "productUrl",
-            "productCategory"
-          ]
+          "productName": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number"
+          },
+          "finalPrice": {
+            "type": "number"
+          },
+          "productImageSrc": {
+            "type": "string"
+          },
+          "productUrl": {
+            "type": "string"
+          },
+          "productCategory": {
+            "type": "string"
+          },
+          "productColor": {
+            "type": "object",
+            "properties": {
+              "colorCode": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "colorCode"
+            ]
+          },
+          "productSize": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "productId",
+          "productName",
+          "price",
+          "finalPrice",
+          "productImageSrc",
+          "productUrl",
+          "productCategory"
+        ]
       },
       "User": {
         "type": "object",
@@ -671,7 +676,7 @@
             "type": "array",
             "items": {
               "type": "object",
-               "$ref": "#/components/schemas/CartItem"
+              "$ref": "#/components/schemas/CartItem"
             }
           },
           "createdAt": {
@@ -998,63 +1003,118 @@
     }
   },
   "paths": {
-   "/users/wishlist": {
+    "/users/wishlist": {
       "get": {
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Get the signed-in user's wish list",
-        "security": [{ "bearerAuth": [] }],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
-          "200": { "description": "The wish list: { count, results: Product[] }" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "500": { "$ref": "#/components/responses/InternalServerError" }
+          "200": {
+            "description": "The wish list: { count, results: Product[] }"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
         }
       },
       "post": {
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Add a product to the signed-in user's wish list",
-        "security": [{ "bearerAuth": [] }],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["productId"],
-                "properties": { "productId": { "type": "string", "example": "861PY" } }
+                "required": [
+                  "productId"
+                ],
+                "properties": {
+                  "productId": {
+                    "type": "string",
+                    "example": "861PY"
+                  }
+                }
               }
             }
           }
         },
         "responses": {
-          "201": { "description": "Product added; returns the updated wish list" },
-          "200": { "description": "Product was already in the wish list; returns the wish list" },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "500": { "$ref": "#/components/responses/InternalServerError" }
+          "201": {
+            "description": "Product added; returns the updated wish list"
+          },
+          "200": {
+            "description": "Product was already in the wish list; returns the wish list"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
         }
       }
     },
     "/users/wishlist/{productId}": {
       "delete": {
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Remove a product from the signed-in user's wish list",
-        "security": [{ "bearerAuth": [] }],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "in": "path",
             "name": "productId",
             "required": true,
-            "schema": { "type": "string" },
+            "schema": {
+              "type": "string"
+            },
             "description": "The product id, e.g. 861PY"
           }
         ],
         "responses": {
-          "200": { "description": "Product removed; returns the updated wish list" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "500": { "$ref": "#/components/responses/InternalServerError" }
+          "200": {
+            "description": "Product removed; returns the updated wish list"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
         }
       }
     },
@@ -1777,6 +1837,58 @@
           },
           "500": {
             "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/users/password": {
+      "post": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Change the authenticated user password",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "currentPassword",
+                  "newPassword"
+                ],
+                "properties": {
+                  "currentPassword": {
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "newPassword": {
+                    "type": "string",
+                    "minLength": 6,
+                    "maxLength": 100
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password changed"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Unauthorized or incorrect current password"
+          },
+          "409": {
+            "description": "Concurrent password change"
           }
         }
       }

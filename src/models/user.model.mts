@@ -70,3 +70,14 @@ export async function removeFromWishlist(userId: string, productId: string) {
       { $pull: { wishlist: productId }, $set: { modifiedAt: new Date() } }
     );
 }
+
+export async function getUserById(userId: string) {
+  return mongodb.getDb().collection("users").findOne({ _id: new ObjectId(userId) });
+}
+
+export async function updatePassword(userId: string, previousHash: string, password: string) {
+  return mongodb.getDb().collection("users").updateOne(
+    { _id: new ObjectId(userId), password: previousHash },
+    { $set: { password, modifiedAt: new Date() } }
+  );
+}
