@@ -270,25 +270,18 @@
           "userId": {
             "type": "string"
           },
-          "name":{
+          "name": {
             "type": "string"
           },
           "status": {
             "type": "string",
-            "enum":["pending", "processing", "shipped", "delivered"],
+            "enum": [
+              "pending",
+              "processing",
+              "shipped",
+              "delivered"
+            ],
             "description": "The status of the order, must be one of pending, processing, shipped or delivered"
-          },
-          "cardNumber": {
-            "type": "string",
-            "description": "A 12 digit credit card number"
-          },
-          "cardExpiration": {
-            "type": "string",
-            "description": "The expiration date of the card in mm/yy format"
-          },
-          "cardCode": {
-            "type": "string",
-            "description": "The three digit security code for the card"
           },
           "totalPrice": {
             "type": "number"
@@ -387,13 +380,28 @@
                 "pattern": "^\\w+$",
                 "description": "The country of the user, must not be blank and must be a valid country"
               }
-            }},
+            },
+            "required": [
+              "street",
+              "city",
+              "state",
+              "zipCode",
+              "country"
+            ],
+            "additionalProperties": false
+          },
           "orderItems": {
             "type": "array",
             "items": {
               "type": "object",
-               "$ref": "#/components/schemas/CartItem"
+              "$ref": "#/components/schemas/CartItem"
             }
+          },
+          "shippingCost": {
+            "type": "number"
+          },
+          "taxAmount": {
+            "type": "number"
           }
         },
         "required": [
@@ -402,11 +410,14 @@
           "name",
           "status",
           "totalPrice",
-          "createdOn",
-          "items"
+          "shippingCost",
+          "taxAmount",
+          "createdAt",
+          "modifiedAt",
+          "shippingAddress",
+          "orderItems"
         ]
       },
-      
       "OrderUpdateRequest": {
         "type": "object",
         "properties": {
@@ -486,51 +497,51 @@
       "CartItem": {
         "type": "object",
         "properties": {
-            "productId": {
-              "type": "string"
-            },
-            "productName": {
-              "type": "string"
-            },
-            "price": {
-              "type": "number"
-            },
-            "finalPrice": {
-              "type": "number"
-            },
-            "productImageSrc": {
-              "type": "string"
-            },
-            "productUrl": {
-              "type": "string"
-            },
-            "productCategory": {
-              "type": "string"
-            },
-            "productColor": {
-              "type": "object",
-              "properties": {
-                "colorCode": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "colorCode"
-              ]
-            },
-            "productSize": {
-              "type": "string"
-            }
+          "productId": {
+            "type": "string"
           },
-          "required": [
-            "productId",
-            "productName",
-            "price",
-            "finalPrice",
-            "productImageSrc",
-            "productUrl",
-            "productCategory"
-          ]
+          "productName": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number"
+          },
+          "finalPrice": {
+            "type": "number"
+          },
+          "productImageSrc": {
+            "type": "string"
+          },
+          "productUrl": {
+            "type": "string"
+          },
+          "productCategory": {
+            "type": "string"
+          },
+          "productColor": {
+            "type": "object",
+            "properties": {
+              "colorCode": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "colorCode"
+            ]
+          },
+          "productSize": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "productId",
+          "productName",
+          "price",
+          "finalPrice",
+          "productImageSrc",
+          "productUrl",
+          "productCategory"
+        ]
       },
       "User": {
         "type": "object",
@@ -671,7 +682,7 @@
             "type": "array",
             "items": {
               "type": "object",
-               "$ref": "#/components/schemas/CartItem"
+              "$ref": "#/components/schemas/CartItem"
             }
           },
           "createdAt": {
@@ -746,6 +757,167 @@
         },
         "required": [
           "message"
+        ]
+      },
+      "OrderCreateRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "userId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 100,
+            "pattern": "\\S"
+          },
+          "cardNumber": {
+            "type": "string",
+            "enum": [
+              "4242424242424242"
+            ],
+            "description": "Simulated payment only; use this test card."
+          },
+          "cardExpiration": {
+            "type": "string",
+            "pattern": "^(0[1-9]|1[0-2])/\\d{2}$",
+            "description": "MM/YY, valid until end of expiration month (UTC)."
+          },
+          "cardCode": {
+            "type": "string",
+            "pattern": "^\\d{3}$",
+            "writeOnly": true
+          },
+          "totalPrice": {
+            "type": "number",
+            "minimum": 0
+          },
+          "shippingAddress": {
+            "type": "object",
+            "properties": {
+              "street": {
+                "type": "string",
+                "minLength": 10,
+                "maxLength": 100,
+                "description": "The street address of the user, must not be blank and must be at least ten characters long and no more than one hundred characters long"
+              },
+              "city": {
+                "type": "string",
+                "minLength": 5,
+                "maxLength": 50,
+                "description": "The city of the user, must not be blank and must be at least five characters long and no more than fifty characters long"
+              },
+              "state": {
+                "type": "string",
+                "enum": [
+                  "AL",
+                  "AK",
+                  "AZ",
+                  "AR",
+                  "CA",
+                  "CO",
+                  "CT",
+                  "DE",
+                  "DC",
+                  "FL",
+                  "GA",
+                  "HI",
+                  "ID",
+                  "IL",
+                  "IN",
+                  "IA",
+                  "KS",
+                  "KY",
+                  "LA",
+                  "ME",
+                  "MD",
+                  "MA",
+                  "MI",
+                  "MN",
+                  "MS",
+                  "MO",
+                  "MT",
+                  "NE",
+                  "NV",
+                  "NH",
+                  "NJ",
+                  "NM",
+                  "NY",
+                  "NC",
+                  "ND",
+                  "OH",
+                  "OK",
+                  "OR",
+                  "PA",
+                  "RI",
+                  "SC",
+                  "SD",
+                  "TN",
+                  "TX",
+                  "UT",
+                  "VT",
+                  "VA",
+                  "WA",
+                  "WV",
+                  "WI",
+                  "WY"
+                ],
+                "description": "The state of the user, must not be blank and must be one a valid 2 character state abbreviation"
+              },
+              "zipCode": {
+                "type": "string",
+                "minLength": 5,
+                "maxLength": 10,
+                "pattern": "^\\d{5}(-\\d{4})?$",
+                "description": "The zip code of the user, must not be blank and must be a valid zip code"
+              },
+              "country": {
+                "type": "string",
+                "minLength": 2,
+                "maxLength": 30,
+                "pattern": "^\\w+$",
+                "description": "The country of the user, must not be blank and must be a valid country"
+              }
+            },
+            "required": [
+              "street",
+              "city",
+              "state",
+              "zipCode",
+              "country"
+            ],
+            "additionalProperties": false
+          },
+          "orderItems": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 100,
+            "description": "One entry per unit; repeated product IDs represent quantity.",
+            "items": {
+              "$ref": "#/components/schemas/CartItem"
+            }
+          },
+          "taxAmount": {
+            "type": "number",
+            "minimum": 0
+          },
+          "shippingCost": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "userId",
+          "name",
+          "cardNumber",
+          "cardExpiration",
+          "cardCode",
+          "totalPrice",
+          "shippingAddress",
+          "orderItems",
+          "taxAmount",
+          "shippingCost"
         ]
       }
     },
@@ -998,63 +1170,118 @@
     }
   },
   "paths": {
-   "/users/wishlist": {
+    "/users/wishlist": {
       "get": {
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Get the signed-in user's wish list",
-        "security": [{ "bearerAuth": [] }],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
-          "200": { "description": "The wish list: { count, results: Product[] }" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "500": { "$ref": "#/components/responses/InternalServerError" }
+          "200": {
+            "description": "The wish list: { count, results: Product[] }"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
         }
       },
       "post": {
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Add a product to the signed-in user's wish list",
-        "security": [{ "bearerAuth": [] }],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["productId"],
-                "properties": { "productId": { "type": "string", "example": "861PY" } }
+                "required": [
+                  "productId"
+                ],
+                "properties": {
+                  "productId": {
+                    "type": "string",
+                    "example": "861PY"
+                  }
+                }
               }
             }
           }
         },
         "responses": {
-          "201": { "description": "Product added; returns the updated wish list" },
-          "200": { "description": "Product was already in the wish list; returns the wish list" },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "500": { "$ref": "#/components/responses/InternalServerError" }
+          "201": {
+            "description": "Product added; returns the updated wish list"
+          },
+          "200": {
+            "description": "Product was already in the wish list; returns the wish list"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
         }
       }
     },
     "/users/wishlist/{productId}": {
       "delete": {
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Remove a product from the signed-in user's wish list",
-        "security": [{ "bearerAuth": [] }],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "in": "path",
             "name": "productId",
             "required": true,
-            "schema": { "type": "string" },
+            "schema": {
+              "type": "string"
+            },
             "description": "The product id, e.g. 861PY"
           }
         ],
         "responses": {
-          "200": { "description": "Product removed; returns the updated wish list" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "500": { "$ref": "#/components/responses/InternalServerError" }
+          "200": {
+            "description": "Product removed; returns the updated wish list"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
         }
       }
     },
@@ -1573,7 +1800,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Order"
+                "$ref": "#/components/schemas/OrderCreateRequest"
               }
             }
           }
@@ -1594,7 +1821,8 @@
           "500": {
             "$ref": "#/components/responses/InternalServerError"
           }
-        }
+        },
+        "description": "Server validates catalog prices, tax (6% of merchandise subtotal), shipping ($10 first unit plus $2 per additional unit), and total including tax and shipping. Amounts rounded to cents. No payment credentials are persisted."
       }
     },
     "/users/{id}": {
@@ -1777,6 +2005,58 @@
           },
           "500": {
             "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/users/password": {
+      "post": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Change the authenticated user password",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "currentPassword",
+                  "newPassword"
+                ],
+                "properties": {
+                  "currentPassword": {
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "newPassword": {
+                    "type": "string",
+                    "minLength": 6,
+                    "maxLength": 100
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password changed"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Unauthorized or incorrect current password"
+          },
+          "409": {
+            "description": "Concurrent password change"
           }
         }
       }

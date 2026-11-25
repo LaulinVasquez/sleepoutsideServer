@@ -6,6 +6,8 @@ import authorize from "../middleware/authorize.mts";
 import { addProduct, getWishlist, removeProduct } from "../services/wishlist.service.mts";
 
 
+import { changePassword } from "../services/password.service.mts";
+
 const router: Router = Router();
 
 router.get("/protected", authorize, (req, res) => {
@@ -102,6 +104,13 @@ router.delete("/wishlist/:productId", authorize, async (req, res, next): Promise
   } catch (error) {
     next(error);
   }
+});
+
+router.post("/password", authorize, async (req, res, next) => {
+  try {
+    await changePassword(res.locals.user?.id, req.body?.currentPassword, req.body?.newPassword);
+    res.json({ message: "Password changed successfully." });
+  } catch (error) { next(error); }
 });
 
 export default router;
